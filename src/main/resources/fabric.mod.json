@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "victusclient",
+  "version": "${version}",
+  "name": "Victus Client",
+  "description": "Victus Client in-game mod menu: HUD, render and movement mods.",
+  "authors": ["Victus"],
+  "environment": "client",
+  "mixins": ["victusclient.mixins.json"],
+  "entrypoints": { "client": ["com.victusclient.VictusClient"] },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "${mc_depends}",
+    "java": ">=${java}",
+    "fabric-api": "*"
+  }
+}

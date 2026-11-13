@@ -1,0 +1,41 @@
+plugins {
+    id 'fabric-loom' version "${loom_version}"
+}
+
+// Build one target:  gradle -Ptarget=1.21.4 build   (default 1.21.11)
+def target = (findProperty('target') ?: '1.21.11').toString()
+def tf = file("versions/${target}.properties")
+if (!tf.exists()) {
+    throw new GradleException("Unknown target '${target}'. Available: " +
+            file('versions').list().collect { it - '.properties' }.join(', '))
+}
+def tp = new Properties()
+tf.withInputStream { tp.load(it) }
+
+version = mod_version
+group = maven_group
+base { archivesName = "victusclient-${target}" }
+
+// version-specific code (input API, HUD API, keybind category)
+sourceSets.main.java.srcDir "src/compat/${tp.getProperty('variant')}/java"
+
+dependencies {
+    minecraft "com.mojang:minecraft:${tp.getProperty('minecraft_version')}"
+    mappings "net.fabricmc:yarn:${tp.getProperty('yarn_mappings')}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${tp.getProperty('fabric_version')}"
+}
+
+processResources {
+    def props = [version: project.version.toString(), mc_depends: tp.getProperty('mc_depends'), java: tp.getProperty('java') ?: '21']
+    inputs.properties props
+    filesMatching(['fabric.mod.json', '*.mixins.json']) { expand props }
+}
+
+def javaVer = Integer.parseInt(tp.getProperty('java') ?: '21')
+tasks.withType(JavaCompile).configureEach { it.options.release = javaVer }
+
+java {
+    sourceCompatibility = JavaVersion.toVersion(javaVer)
+    targetCompatibility = JavaVersion.toVersion(javaVer)
+}
